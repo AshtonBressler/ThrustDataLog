@@ -1,7 +1,5 @@
-// Basic example as base, changed for rocket load cell data logging
-// search for "HX711 Arduino Library"
-//
-#include "HX711.h"
+#include <EEPROM.h>
+#include <HX711.h>
 
 // HX711 circuit wiring
 const int LOADCELL_DOUT_PIN = 2;
@@ -12,18 +10,20 @@ HX711 scale;
 void setup() {
   Serial.begin(57600);
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  
+  float calibrationFactor;
+  EEPROM.get(0, calibrationFactor); // Retrieve the calibration factor from EEPROM
+  Serial.println(calibrationFactor);
+  scale.tare();
+  scale.set_scale(calibrationFactor);  // Apply calibration factor
+  
+  Serial.println("Scale ready");
 }
 
 void loop() {
-
-  if (scale.is_ready()) {
-    long reading = scale.read();
-    Serial.print("HX711 reading: ");
-    Serial.println(reading);
-  } else {
-    Serial.println("HX711 not found.");
-  }
-
-  delay(1000);
-  
+  float weight = scale.get_units(5);
+  Serial.print("Weight: ");
+  Serial.print(weight);
+  Serial.println("lbs");
+  delay(500);
 }
